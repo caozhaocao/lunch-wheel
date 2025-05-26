@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吵架包赢 - 让你辩论无敌</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 微信风格配色 */
+        :root {
+            --wechat-green: #07C160;
+            --wechat-green-hover: #06AD56;
+            --wechat-bg: #EDEDED;
+            --wechat-white: #FFFFFF;
+            --wechat-black: #191919;
+            --wechat-gray: #909399;
+        }
+        
+        body {
+            background-color: var(--wechat-bg);
+        }
+        
+        /* 滑块样式 */
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #E0E0E0;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            border-radius: 4px;
+        }
+        
+        .slider:hover {
+            opacity: 1;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--wechat-green);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: var(--wechat-green);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* 动画效果 */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .reply-item {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        /* 复制按钮样式 */
+        .copy-btn {
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background-color: var(--wechat-green);
+            color: white;
+        }
+        
+        .copy-btn.copied {
+            background-color: var(--wechat-green);
+            color: white;
+        }
+        
+        /* 火焰效果 */
+        .fire-emoji {
+            display: inline-block;
+            animation: burn 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes burn {
+            from { transform: scale(1) rotate(-5deg); }
+            to { transform: scale(1.1) rotate(5deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 md:p-8">
+        <!-- 标题 -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                <span class="fire-emoji">🔥</span> 吵架包赢 <span class="fire-emoji">🔥</span>
+            </h1>
+            <p class="text-gray-600">让你在任何辩论中占据上风</p>
+        </div>
+        
+        <!-- 输入区域 -->
+        <div class="space-y-6">
+            <!-- 对方的话输入框 -->
+            <div>
+                <label for="opponentText" class="block text-sm font-medium text-gray-700 mb-2">
+                    对方说了什么？
+                </label>
+                <textarea
+                    id="opponentText"
+                    rows="3"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                    placeholder="输入对方的话..."
+                ></textarea>
+            </div>
+            
+            <!-- 语气强度选择 -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    语气强烈程度
+                    <span id="intensityValue" class="ml-2 text-green-600 font-bold">5</span>
+                </label>
+                <div class="flex items-center space-x-3">
+                    <span class="text-sm text-gray-500">😊</span>
+                    <input
+                        type="range"
+                        id="intensitySlider"
+                        min="1"
+                        max="10"
+                        value="5"
+                        class="slider flex-1"
+                    >
+                    <span class="text-sm text-gray-500">😤</span>
+                </div>
+                <div class="flex justify-between mt-1 px-12">
+                    <span class="text-xs text-gray-400">温和</span>
+                    <span class="text-xs text-gray-400">强烈</span>
+                </div>
+            </div>
+            
+            <!-- 开始按钮 -->
+            <button
+                id="generateBtn"
+                class="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold text-lg rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300"
+                style="background-color: var(--wechat-green);"
+                onmouseover="this.style.backgroundColor='var(--wechat-green-hover)'"
+                onmouseout="this.style.backgroundColor='var(--wechat-green)'"
+            >
+                ⚔️ 开始吵架
+            </button>
+        </div>
+        
+        <!-- 回复结果区域 -->
+        <div id="repliesContainer" class="mt-8 space-y-4 hidden">
+            <h3 class="text-lg font-semibold text-gray-800">💪 完美回击：</h3>
+            <div id="repliesList" class="space-y-3"></div>
+        </div>
+        
+        <!-- 历史记录按钮 -->
+        <div class="mt-6 text-center">
+            <button
+                id="historyBtn"
+                class="text-sm text-gray-600 hover:text-green-600 transition-colors"
+            >
+                📜 查看历史记录
+            </button>
+        </div>
+    </div>
+    
+    <!-- 历史记录模态框 -->
+    <div id="historyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-gray-800">📜 历史记录</h3>
+                    <button
+                        id="closeHistoryBtn"
+                        class="text-gray-400 hover:text-gray-600 text-2xl"
+                    >
+                        ×
+                    </button>
+                </div>
+            </div>
+            <div id="historyContent" class="p-6 overflow-y-auto max-h-[60vh]">
+                <!-- 历史记录内容 -->
+            </div>
+            <div class="p-4 border-t border-gray-200">
+                <button
+                    id="clearHistoryBtn"
+                    class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
+                >
+                    🗑️ 清空历史
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM 元素
+        const opponentTextEl = document.getElementById('opponentText');
+        const intensitySliderEl = document.getElementById('intensitySlider');
+        const intensityValueEl = document.getElementById('intensityValue');
+        const generateBtnEl = document.getElementById('generateBtn');
+        const repliesContainerEl = document.getElementById('repliesContainer');
+        const repliesListEl = document.getElementById('repliesList');
+        const historyBtnEl = document.getElementById('historyBtn');
+        const historyModalEl = document.getElementById('historyModal');
+        const closeHistoryBtnEl = document.getElementById('closeHistoryBtn');
+        const historyContentEl = document.getElementById('historyContent');
+        const clearHistoryBtnEl = document.getElementById('clearHistoryBtn');
+        
+        // 回复模板库
+        const replyTemplates = {
+            low: [ // 语气 1-3
+                "我理解你的观点，但是{reason}，所以{conclusion}。",
+                "或许你说的有一定道理，不过{reason}，因此{conclusion}。",
+                "这个问题可以从另一个角度看，{reason}，这样{conclusion}。"
+            ],
+            medium: [ // 语气 4-7
+                "你这话说得毫无逻辑，{reason}，显然{conclusion}。",
+                "麻烦你动动脑子想想，{reason}，所以{conclusion}。",
+                "我真是服了，{reason}，这都不明白吗？{conclusion}。"
+            ],
+            high: [ // 语气 8-10
+                "你是认真的吗？{reason}，{conclusion}，建议你回去好好学习一下！",
+                "笑死我了，{reason}，{conclusion}，这智商真让人着急。",
+                "听君一席话，如听一席话。{reason}，{conclusion}，拜托长点脑子好吗？"
+            ]
+        };
+        
+        // 理由和结论库
+        const reasons = [
+            "任何有基本常识的人都知道这个道理",
+            "这是最基本的逻辑思维",
+            "稍微查查资料就能明白",
+            "从各个角度分析都能得出这个结论",
+            "这已经被无数事实证明了",
+            "连小学生都能理解这个问题",
+            "历史和现实都告诉我们",
+            "用最简单的推理就能知道"
+        ];
+        
+        const conclusions = [
+            "你的观点完全站不住脚",
+            "这种论调简直是贻笑大方",
+            "你需要重新审视这个问题",
+            "这种想法实在是太天真了",
+            "你的理解存在根本性错误",
+            "这种观点缺乏基本的认知",
+            "你完全曲解了事实",
+            "建议你多读书多看报"
+        ];
+        
+        // 更新语气强度显示
+        intensitySliderEl.addEventListener('input', () => {
+            intensityValueEl.textContent = intensitySliderEl.value;
+        });
+        
+        // 生成回复
+        const generateReplies = () => {
+            const opponentText = opponentTextEl.value.trim();
+            if (!opponentText) {
+                alert('请输入对方的话！');
+                return;
+            }
+            
+            const intensity = parseInt(intensitySliderEl.value);
+            let templates;
+            
+            if (intensity <= 3) {
+                templates = replyTemplates.low;
+            } else if (intensity <= 7) {
+                templates = replyTemplates.medium;
+            } else {
+                templates = replyTemplates.high;
+            }
+            
+            // 生成3条不同的回复
+            const replies = [];
+            const usedTemplates = new Set();
+            
+            while (replies.length < 3) {
+                const templateIndex = Math.floor(Math.random() * templates.length);
+                if (usedTemplates.has(templateIndex)) continue;
+                usedTemplates.add(templateIndex);
+                
+                const template = templates[templateIndex];
+                const reason = reasons[Math.floor(Math.random() * reasons.length)];
+                const conclusion = conclusions[Math.floor(Math.random() * conclusions.length)];
+                
+                const reply = template
+                    .replace('{reason}', reason)
+                    .replace('{conclusion}', conclusion);
+                
+                replies.push(reply);
+            }
+            
+            // 显示回复
+            displayReplies(replies);
+            
+            // 保存到历史记录
+            saveToHistory(opponentText, intensity, replies);
+        };
+        
+        // 显示回复
+        const displayReplies = (replies) => {
+            repliesListEl.innerHTML = '';
+            
+            replies.forEach((reply, index) => {
+                const replyEl = document.createElement('div');
+                replyEl.className = 'reply-item bg-gray-50 p-4 rounded-lg border border-gray-200';
+                replyEl.style.animationDelay = `${index * 0.1}s`;
+                
+                replyEl.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <p class="text-gray-800 flex-1 mr-2">${reply}</p>
+                        <button
+                            class="copy-btn px-3 py-1 text-sm bg-gray-200 hover:bg-green-500 hover:text-white rounded transition-colors"
+                            onclick="copyToClipboard('${reply.replace(/'/g, "\\'")}', this)"
+                        >
+                            📋 复制
+                        </button>
+                    </div>
+                `;
+                
+                repliesListEl.appendChild(replyEl);
+            });
+            
+            repliesContainerEl.classList.remove('hidden');
+        };
+        
+        // 复制到剪贴板
+        const copyToClipboard = (text, button) => {
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = '✅ 已复制';
+                button.classList.add('copied');
+                setTimeout(() => {
+                    button.textContent = '📋 复制';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        };
+        
+        // 保存到历史记录
+        const saveToHistory = (opponentText, intensity, replies) => {
+            const history = JSON.parse(localStorage.getItem('argumentHistory') || '[]');
+            const newItem = {
+                timestamp: Date.now(),
+                opponentText,
+                intensity,
+                replies
+            };
+            
+            history.unshift(newItem);
+            if (history.length > 50) history.pop(); // 最多保存50条
+            
+            localStorage.setItem('argumentHistory', JSON.stringify(history));
+        };
+        
+        // 显示历史记录
+        const showHistory = () => {
+            const history = JSON.parse(localStorage.getItem('argumentHistory') || '[]');
+            
+            if (history.length === 0) {
+                historyContentEl.innerHTML = '<p class="text-gray-500 text-center">暂无历史记录</p>';
+            } else {
+                historyContentEl.innerHTML = history.map(item => `
+                    <div class="mb-6 pb-6 border-b border-gray-200 last:border-0">
+                        <div class="text-sm text-gray-500 mb-2">
+                            ${new Date(item.timestamp).toLocaleString()} | 强度：${item.intensity}
+                        </div>
+                        <div class="mb-3">
+                            <span class="font-semibold">对方：</span>${item.opponentText}
+                        </div>
+                        <div class="space-y-2">
+                            ${item.replies.map(reply => `
+                                <div class="bg-gray-50 p-3 rounded text-sm">${reply}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            historyModalEl.classList.remove('hidden');
+            historyModalEl.classList.add('flex');
+        };
+        
+        // 关闭历史记录
+        const closeHistory = () => {
+            historyModalEl.classList.add('hidden');
+            historyModalEl.classList.remove('flex');
+        };
+        
+        // 清空历史记录
+        const clearHistory = () => {
+            if (confirm('确定要清空所有历史记录吗？')) {
+                localStorage.removeItem('argumentHistory');
+                showHistory(); // 重新显示空的历史记录
+            }
+        };
+        
+        // 事件监听
+        generateBtnEl.addEventListener('click', generateReplies);
+        historyBtnEl.addEventListener('click', showHistory);
+        closeHistoryBtnEl.addEventListener('click', closeHistory);
+        clearHistoryBtnEl.addEventListener('click', clearHistory);
+        
+        // 点击模态框外部关闭
+        historyModalEl.addEventListener('click', (e) => {
+            if (e.target === historyModalEl) {
+                closeHistory();
+            }
+        });
+        
+        // 回车键生成回复
+        opponentTextEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                generateReplies();
+            }
+        });
+        
+        // 将函数暴露到全局作用域以供 onclick 使用
+        window.copyToClipboard = copyToClipboard;
+    </script>
+</body>
+</html> 
